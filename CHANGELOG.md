@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.0] - 2026-03-04
+
+### Added
+
+- 🔍 **Port detection** (`GET /ports`) — discovers TCP ports listening on localhost, scoped to descendant processes of open-terminal (servers started via the terminal or `/execute`). Cross-platform: parses `/proc/net/tcp` on Linux, `lsof` on macOS, `netstat` on Windows. Zero new dependencies.
+- 🔀 **Port proxy** (`/proxy/{port}/{path}`) — reverse-proxies HTTP requests to `localhost:{port}`, enabling browser access to servers running inside the terminal environment. Supports all HTTP methods, forwards headers and body, returns 502 on connection refused. Uses the existing `httpx` dependency.
+- 📦 **`utils.port` module** — port detection and process-tree utilities extracted into `open_terminal/utils/port.py` for reusability.
+
+## [0.8.3] - 2026-03-04
+
+### Added
+
+- ⏱️ **Default execute timeout** — new `OPEN_TERMINAL_EXECUTE_TIMEOUT` environment variable (or `execute_timeout` in config.toml) sets a default wait duration for command execution. Smaller models that don't set timeouts now get command output inline instead of assuming failure.
+
 ## [0.8.2] - 2026-03-02
 
 ### Added

@@ -1133,6 +1133,101 @@ async def kill_process(
 
 
 # ---------------------------------------------------------------------------
+# Port detection & proxy
+# ---------------------------------------------------------------------------
+
+from open_terminal.utils.port import detect_listening_ports, get_descendant_pids
+
+@app.get(
+    "/ports",
+    include_in_schema=False,
+    dependencies=[Depends(verify_api_key)],
+)
+async def list_ports():
+    """Return TCP ports currently listening on localhost.
+
+    Only includes ports owned by descendant processes of open-terminal
+    (i.e. things started via the terminal or /execute).
+    """
+    all_ports = await asyncio.to_thread(detect_listening_ports)
+
+    own_pid = os.getpid()
+    descendant_pids = await asyncio.to_thread(get_descendant_pids, own_pid)
+    all_ports = [p for p in all_ports if p.get("pid") in descendant_pids]
+
+    return {"ports": all_ports}
+
+
+# -- Port proxy client (reused across requests) --
+_port_proxy_client = None
+
+
+async def _get_port_proxy_client():
+    global _port_proxy_client
+    if _port_proxy_client is None:
+        import httpx
+        _port_proxy_client = httpx.AsyncClient(
+            timeout=httpx.Timeout(300.0, connect=5.0),
+            follow_redirects=False,
+        )
+    return _port_proxy_client
+
+
+@app.api_route(
+    "/proxy/{port}/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+    include_in_schema=False,
+    dependencies=[Depends(verify_api_key)],
+)
+async def port_proxy(port: int, path: str, request: Request):
+    """Reverse-proxy a request to localhost:{port}/{path}."""
+    if port < 1 or port > 65535:
+        raise HTTPException(status_code=422, detail="Port must be between 1 and 65535")
+
+    target_url = f"http://localhost:{port}/{path}"
+    if request.query_params:
+        target_url += f"?{request.query_params}"
+
+    # Forward headers, stripping hop-by-hop and host.
+    headers = dict(request.headers)
+    for h in ("host", "transfer-encoding", "connection", "authorization"):
+        headers.pop(h, None)
+
+    body = await request.body()
+
+    import httpx
+
+    client = await _get_port_proxy_client()
+    try:
+        upstream = await client.request(
+            method=request.method,
+            url=target_url,
+            headers=headers,
+            content=body or None,
+        )
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Connection refused: localhost:{port}",
+        )
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail=f"Timeout connecting to localhost:{port}",
+        )
+
+    response_headers = dict(upstream.headers)
+    for h in ("transfer-encoding", "connection", "content-encoding", "content-length"):
+        response_headers.pop(h, None)
+
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers=response_headers,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Interactive terminal sessions (resource-oriented API)
 # ---------------------------------------------------------------------------
 
