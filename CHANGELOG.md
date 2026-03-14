@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.16] - 2026-03-13
+
+### Removed
+
+- 🧹 **Removed experimental `url` parameter from `/files/upload`** — this feature was never used by any known consumer (Open WebUI uses multipart uploads). The endpoint now only accepts direct file uploads.
+
 ## [0.11.15] - 2026-03-13
 
 ### Changed

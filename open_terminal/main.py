@@ -851,7 +851,7 @@ async def glob_search(
     include_in_schema=False,
     operation_id="upload_file",
     summary="Upload a file",
-    description="Save a file to the specified path. Provide a `url` to fetch remotely, or send the file directly via multipart form data.",
+    description="Save a file to the specified path via multipart form data.",
     dependencies=[Depends(verify_api_key)],
     responses={
         401: {"description": "Invalid or missing API key."},
@@ -859,31 +859,13 @@ async def glob_search(
 )
 async def upload_file(
     directory: str = Query(..., description="Destination directory for the file."),
-    url: Optional[str] = Query(
-        None,
-        description="URL to download the file from. If omitted, expects a multipart file upload.",
-    ),
-    file: Optional[UploadFile] = File(
-        None, description="The file to upload (if no URL provided)."
+    file: UploadFile = File(
+        ..., description="The file to upload."
     ),
     fs: UserFS = Depends(get_filesystem),
 ):
-    if url:
-        import httpx
-        from urllib.parse import urlparse
-
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-        content = response.content
-        filename = os.path.basename(urlparse(url).path) or "download"
-    elif file:
-        content = await file.read()
-        filename = os.path.basename(file.filename or "upload")
-    else:
-        raise HTTPException(
-            status_code=400, detail="Provide either 'url' or a file upload."
-        )
+    content = await file.read()
+    filename = os.path.basename(file.filename or "upload")
 
     directory = fs.resolve_path(directory)
     path = os.path.normpath(os.path.join(directory, filename))
