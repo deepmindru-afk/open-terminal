@@ -131,6 +131,16 @@ ENABLE_NOTEBOOKS = os.environ.get(
     str(config.get("enable_notebooks", True)),
 ).lower() not in ("false", "0", "no")
 
+ENABLE_SYSTEM_PROMPT = os.environ.get(
+    "OPEN_TERMINAL_ENABLE_SYSTEM_PROMPT",
+    str(config.get("enable_system_prompt", True)),
+).lower() not in ("false", "0", "no")
+
+SYSTEM_PROMPT = os.environ.get(
+    "OPEN_TERMINAL_SYSTEM_PROMPT",
+    config.get("system_prompt", ""),
+)
+
 MULTI_USER = os.environ.get(
     "OPEN_TERMINAL_MULTI_USER",
     str(config.get("multi_user", False)),

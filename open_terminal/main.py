@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from open_terminal.env import API_KEY, BINARY_FILE_MIME_PREFIXES, CORS_ALLOWED_ORIGINS, ENABLE_NOTEBOOKS, ENABLE_TERMINAL, EXECUTE_DESCRIPTION, EXECUTE_TIMEOUT, LOG_DIR, MAX_TERMINAL_SESSIONS, MULTI_USER, OPEN_TERMINAL_INFO, PROCESS_LOG_RETENTION, TERMINAL_TERM
+from open_terminal.env import API_KEY, BINARY_FILE_MIME_PREFIXES, CORS_ALLOWED_ORIGINS, ENABLE_NOTEBOOKS, ENABLE_SYSTEM_PROMPT, ENABLE_TERMINAL, EXECUTE_DESCRIPTION, EXECUTE_TIMEOUT, LOG_DIR, MAX_TERMINAL_SESSIONS, MULTI_USER, OPEN_TERMINAL_INFO, PROCESS_LOG_RETENTION, SYSTEM_PROMPT, TERMINAL_TERM
 from open_terminal.utils.runner import PipeRunner, ProcessRunner, create_runner
 from open_terminal.utils.fs import UserFS
 
@@ -52,6 +52,31 @@ def get_system_info() -> str:
         f"on {socket.gethostname()}{user_part} with {shell}. "
         f"Python {sys.version.split()[0]} is available."
     )
+
+
+def get_system_prompt() -> str:
+    """Build a default system prompt for LLM integration."""
+    if SYSTEM_PROMPT:
+        return SYSTEM_PROMPT
+
+    shell = os.environ.get("SHELL", "/bin/sh")
+    user_part = f" as user '{os.getenv('USER', 'unknown')}'" if not MULTI_USER else ""
+
+    prompt = (
+        f"You have access to a computer running {platform.system()} {platform.release()} ({platform.machine()}) "
+        f'on host "{socket.gethostname()}"{user_part} with {shell}. '
+        f"Python {sys.version.split()[0]} is available.\n\n"
+        "Use your tools to directly interact with the system \u2014 run commands, read and write files, "
+        "and search the filesystem. "
+        "Prefer verifying the current state before making changes. "
+        "When running commands, check the output to confirm success. "
+        "If a command produces no output, that typically means it succeeded."
+    )
+
+    if OPEN_TERMINAL_INFO:
+        prompt += f"\n\n{OPEN_TERMINAL_INFO}"
+
+    return prompt
 
 
 _EXECUTE_DESCRIPTION = (
@@ -304,8 +329,21 @@ async def get_config():
         "features": {
             "terminal": ENABLE_TERMINAL,
             "notebooks": ENABLE_NOTEBOOKS,
+            "system": ENABLE_SYSTEM_PROMPT,
         },
     }
+
+
+if ENABLE_SYSTEM_PROMPT:
+
+    @app.get(
+        "/system",
+        include_in_schema=False,
+        dependencies=[Depends(verify_api_key)],
+    )
+    async def get_system():
+        """Return a system prompt for LLM integration."""
+        return {"prompt": get_system_prompt()}
 
 
 if OPEN_TERMINAL_INFO:

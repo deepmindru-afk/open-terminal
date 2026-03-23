@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.27] - 2026-03-22
+
+### Added
+
+- 🧠 **System prompt endpoint** (`GET /system`) — returns a structured system prompt for LLM integration, grounding the model in the environment (OS, hostname, user, shell, Python version) with directives for tool usage. Gated by `OPEN_TERMINAL_ENABLE_SYSTEM_PROMPT` (default `true`); advertised via `features.system` in `GET /api/config` so consumers can check support before fetching.
+- ⚙️ **`OPEN_TERMINAL_ENABLE_SYSTEM_PROMPT`** — environment variable (or `enable_system_prompt` in config.toml) to enable/disable the `/system` endpoint and feature flag. Defaults to `true`.
+- ⚙️ **`OPEN_TERMINAL_SYSTEM_PROMPT`** — environment variable (or `system_prompt` in config.toml) to fully override the generated system prompt with custom content.
+
 ## [0.11.26] - 2026-03-20
 
 ### Changed
