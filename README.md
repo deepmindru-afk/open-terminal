@@ -43,7 +43,7 @@ docker run -d -p 8000:8000 -e OPEN_TERMINAL_API_KEY=secret ghcr.io/open-webui/op
 ```
 
 > [!NOTE]
-> Slim and Alpine don't support `OPEN_TERMINAL_PACKAGES` / `OPEN_TERMINAL_PIP_PACKAGES`. To add packages, extend [Dockerfile.slim](Dockerfile.slim) or [Dockerfile.alpine](Dockerfile.alpine).
+> Slim and Alpine don't support `OPEN_TERMINAL_PACKAGES` / `OPEN_TERMINAL_PIP_PACKAGES` / `OPEN_TERMINAL_NPM_PACKAGES`. To add packages, extend [Dockerfile.slim](Dockerfile.slim) or [Dockerfile.alpine](Dockerfile.alpine).
 
 #### Updating
 
@@ -78,6 +78,7 @@ The easiest way to add extra packages is with environment variables — no fork 
 docker run -d --name open-terminal -p 8000:8000 \
   -e OPEN_TERMINAL_PACKAGES="cowsay figlet" \
   -e OPEN_TERMINAL_PIP_PACKAGES="httpx polars" \
+  -e OPEN_TERMINAL_NPM_PACKAGES="typescript tsx" \
   ghcr.io/open-webui/open-terminal
 ```
 
@@ -85,6 +86,7 @@ docker run -d --name open-terminal -p 8000:8000 \
 |---|---|
 | `OPEN_TERMINAL_PACKAGES` | Space-separated list of **apt** packages to install at startup |
 | `OPEN_TERMINAL_PIP_PACKAGES` | Space-separated list of **pip** packages to install at startup |
+| `OPEN_TERMINAL_NPM_PACKAGES` | Space-separated list of **npm** packages to install globally at startup |
 
 > [!NOTE]
 > Packages are installed each time the container starts, so startup will take longer with large package lists. For heavy customization, build a custom image instead.

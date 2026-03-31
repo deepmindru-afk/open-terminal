@@ -71,6 +71,16 @@ if [ -n "${OPEN_TERMINAL_PIP_PACKAGES:-}" ]; then
     fi
 fi
 
+# Auto-install npm packages
+if [ -n "${OPEN_TERMINAL_NPM_PACKAGES:-}" ]; then
+    echo "Installing npm packages: $OPEN_TERMINAL_NPM_PACKAGES"
+    if [ "${OPEN_TERMINAL_MULTI_USER:-false}" = "true" ]; then
+        sudo npm install -g $OPEN_TERMINAL_NPM_PACKAGES
+    else
+        npm install -g $OPEN_TERMINAL_NPM_PACKAGES
+    fi
+fi
+
 # -----------------------------------------------------------------------
 # Network egress filtering via DNS whitelist + iptables + capability drop
 #
