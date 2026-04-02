@@ -349,6 +349,7 @@ def _get_process(process_id: str) -> BackgroundProcess:
 
 @app.get(
     "/health",
+    include_in_schema=False,
     operation_id="health_check",
     summary="Health check",
     description="Returns service status. No authentication required.",
