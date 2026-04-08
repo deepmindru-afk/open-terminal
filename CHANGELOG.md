@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.33] - 2026-04-08
+
+### Fixed
+
+- `grep_search` now defaults to regex mode, matching actual grep behaviour. Patterns like `foo|bar` and `err.*timeout` work as expected without needing to set `regex=true` explicitly.
+
 ## [0.11.32] - 2026-03-30
 
 ### Changed

@@ -751,7 +751,7 @@ async def grep_search(
     http_request: Request,
     query: str = Query(..., description="Text or regex pattern to search for."),
     path: str = Query(".", description="Directory or file to search in."),
-    regex: bool = Query(False, description="Treat query as a regex pattern."),
+    regex: bool = Query(True, description="Use regex. Set false for literal search."),
     case_insensitive: bool = Query(
         False, description="Perform case-insensitive matching."
     ),
